@@ -14,18 +14,33 @@ require 'line/bot'
       when Line::Bot::Event::Message
         case event.type
         when Line::Bot::Event::MessageType::Text
-          seed1 = select_word
-          seed2 = select_word
-          while seed1 == seed2
+          #正規表現で〜をパターンマッチしてkeywordへ格納
+          keyword = event.message['text'].match(/.*「(.+)」.*/)
+          #マッチングした時のみ入力されたキーワードを使用
+          if keyword.present?
             seed2 = select_word
+            message = [{
+              type: 'text',
+              text: "そのワードいいっすね〜"
+            },{
+              type: 'text',
+              text: "#{keyword[1]} × #{seed2} !!"
+            }]
+          else
+            seed1 = select_word
+            seed2 = select_word
+            while seed1 == seed2
+              seed2 = select_word
+            end
+            message = [{
+              type: 'text',
+              text: "キーワード何にしようかな〜〜"
+            },{
+              type: 'text',
+              text: "#{seed1} × #{seed2} !!"
+            }]
           end
-          message = [{
-            type: 'text',
-            text: "キーワード何にしようかな〜〜"
-          },{
-            type: 'text',
-            text: "#{seed1} × #{seed2} !!"
-          }]
+         
           client.reply_message(event['replyToken'], message)
         end
       end
@@ -41,7 +56,7 @@ require 'line/bot'
   end
   def select_word
     # この中を変えると返ってくるキーワードが変わる
-    seeds = ["アイデア１", "アイデア２", "アイデア３", "アイデア４"]
+    seeds = ["教育", "金融", "営業", "プログラミング", "ゲーム"]
     seeds.sample
   end
 end
